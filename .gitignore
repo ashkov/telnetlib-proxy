@@ -1,0 +1,24 @@
+# Python compiled files
+*.pyc
+*.pyo
+__pycache__/
+*.log
+
+# setup develop
+*.egg-info
+
+# build folder
+__build__/
+build/
+dist/
+
+# coverage.py artifacts
+htmlcov/
+.coverage*
+
+# filesystem stuff on Mac
+.DS_Store
+
+# .vscode
+.vscode
+
