@@ -3,6 +3,7 @@ import os
 import sys
 import socks
 import socket
+import termios
 import argparse
 import telnetlib
 from urllib.parse import urlparse
@@ -11,10 +12,46 @@ from urllib.parse import urlparse
 __all__ = ["Telnet"]
 
 
+def wait_key(echo=False):
+    """ Wait for a key press on the console and return it.
+    https://stackoverflow.com/questions/983354/how-do-i-make-python-to-wait-for-a-pressed-key
+    """
+
+    result = None
+    fd = sys.stdin.fileno()
+
+    oldterm = termios.tcgetattr(fd)
+    newattr = termios.tcgetattr(fd)
+    newattr[3] = newattr[3] & ~termios.ICANON
+    if not echo:
+        newattr[3] = newattr[3] & ~termios.ECHO  # disable local echo
+    termios.tcsetattr(fd, termios.TCSANOW, newattr)
+
+    try:
+        result = sys.stdin.read(1)
+    except IOError:
+        pass
+    finally:
+        termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
+
+    return result
+
+
 class Telnet(telnetlib.Telnet):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.echo = False
+
+    def mt_interact(self):
+        """Multithreaded version of interact()."""
+        import _thread
+        _thread.start_new_thread(self.listener, ())
+        while 1:
+            key = wait_key(self.echo)
+            if key in ['\x04']:  # Ctrl-D
+                break
+            self.write(key.encode('ascii'))
 
     def open(self, host, port=0, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, **kwargs):
         """Connect to a host.
@@ -68,6 +105,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('host', help='host', default='localhost')
     parser.add_argument('port', help='port', default=23)
+    parser.add_argument('--echo', action='store_true', default=False, help='Enable echo')
     parser.add_argument('-d', action='count', default=0, help='Increase debug level')
     args = parser.parse_args()
 
@@ -81,10 +119,11 @@ def main():
             port = socket.getservbyname(args.port, 'tcp')
 
     with Telnet() as tn:
+        tn.echo = args.echo
         tn.set_debuglevel(debuglevel)
         tn.open(host, port, timeout=0.5)
         try:
-            tn.interact()
+            tn.mt_interact()
         except KeyboardInterrupt:
             pass
 

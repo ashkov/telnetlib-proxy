@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='telnetlib_proxy',
-    version='0.1.2',
+    version='0.2',
 
     # descriptions
     description='Python telnetlib with SOCKS proxy support',
