@@ -11,6 +11,8 @@ setup(
     author='Dave Wapstra',
     author_email='dwapstra@cisco.com',
 
+    url='https://github.com/dwapstra/telnetlib-proxy/',
+
     # project licensing
     license='Apache 2.0',
 
