@@ -89,8 +89,11 @@ class Telnet(telnetlib.Telnet):
 
         if proxy_args.get('proxy_addr'):
             self.sock = socks.create_connection((host, port), timeout, **proxy_args)
-            socks_hostname = socket.gethostbyaddr(proxy_args.get('proxy_addr'))[0]
-            print('Connected to {} via {}.'.format(target_hostname, socks_hostname))
+            try:
+                socks_hostname = socket.gethostbyaddr(proxy_args.get('proxy_addr'))[0]
+                print('Connected to {} via {}.'.format(target_hostname, socks_hostname))
+            except socket.herror as e:
+                print('Connected to {} via {}.'.format(target_hostname, proxy_args.get('proxy_addr')))
         else:
             self.sock = socket.create_connection((host, port), timeout)
             print('Connected to {}.'.format(target_hostname))
