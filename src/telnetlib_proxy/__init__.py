@@ -67,7 +67,7 @@ class Telnet(telnetlib.Telnet):
         self.timeout = timeout
         sys.audit("telnetlib.Telnet.open", self, host, port)
 
-        proxy_url = os.environ.get('telnet_proxy')
+        proxy_url = kwargs.pop('telnet_proxy', os.environ.get('telnet_proxy'))
 
         if proxy_url:
             url_info = urlparse(proxy_url)
