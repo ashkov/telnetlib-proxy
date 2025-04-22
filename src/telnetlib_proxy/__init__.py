@@ -1,13 +1,12 @@
-
-import os
-import sys
-import socks
-import socket
-import termios
 import argparse
+import os
+import socket
+import sys
 import telnetlib
 from urllib.parse import urlparse
 
+import socks
+import termios
 
 __all__ = ["Telnet"]
 
@@ -40,6 +39,10 @@ def wait_key(echo=False):
 class Telnet(telnetlib.Telnet):
 
     def __init__(self, *args, **kwargs):
+        telnet_proxy = kwargs.pop('telnet_proxy', os.environ.get('telnet_proxy'))
+        if not telnet_proxy:
+            telnet_proxy = os.environ.get('telnet_proxy')
+        self.telnet_proxy = telnet_proxy
         super().__init__(*args, **kwargs)
         self.echo = False
 
@@ -67,7 +70,7 @@ class Telnet(telnetlib.Telnet):
         self.timeout = timeout
         sys.audit("telnetlib.Telnet.open", self, host, port)
 
-        proxy_url = kwargs.pop('telnet_proxy', os.environ.get('telnet_proxy'))
+        proxy_url = self.telnet_proxy
 
         if proxy_url:
             url_info = urlparse(proxy_url)
